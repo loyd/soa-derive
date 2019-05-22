@@ -1,6 +1,6 @@
 use proc_macro2::{Span, TokenStream};
-use syn::{Data, DeriveInput, Ident, Field, Visibility, Meta, Lit};
 use quote::quote;
+use syn::{Data, DeriveInput, Field, Ident, Lit, Meta, Visibility};
 
 /// Representing the struct we are deriving
 pub struct Input {
@@ -11,15 +11,13 @@ pub struct Input {
     /// The list of fields in the struct
     pub fields: Vec<Field>,
     /// The struct overall visibility
-    pub visibility: Visibility
+    pub visibility: Visibility,
 }
 
 impl Input {
     pub fn new(input: DeriveInput) -> Input {
         let fields = match input.data {
-            Data::Struct(s) => {
-                s.fields.iter().cloned().collect::<Vec<_>>()
-            }
+            Data::Struct(s) => s.fields.iter().cloned().collect::<Vec<_>>(),
             _ => panic!("#[derive(StructOfArray)] only supports structs."),
         };
 
@@ -34,7 +32,10 @@ impl Input {
                             }
                         }
                     } else {
-                        panic!("expected #[soa_derive = \"Traits, To, Derive\"], got {}", "meta TODO")
+                        panic!(
+                            "expected #[soa_derive = \"Traits, To, Derive\"], got {}",
+                            "meta TODO"
+                        )
                     }
                 }
             }
@@ -44,7 +45,7 @@ impl Input {
             name: input.ident,
             derives: derives,
             fields: fields,
-            visibility: input.vis
+            visibility: input.vis,
         }
     }
 
@@ -65,11 +66,14 @@ impl Input {
         if self.derives.is_empty() {
             TokenStream::new()
         } else {
-            let derives = &self.derives.iter()
-                                       .cloned()
-                                       .filter(|name| name != "Clone")
-                                       .filter(|name| name != "Deserialize")
-                                       .collect::<Vec<_>>();
+            let derives = &self
+                .derives
+                .iter()
+                .cloned()
+                .filter(|name| name != "Clone")
+                .filter(|name| name != "Serialize")
+                .filter(|name| name != "Deserialize")
+                .collect::<Vec<_>>();
             quote!(
                 #[derive(
                     #(#derives,)*
